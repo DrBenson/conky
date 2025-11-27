@@ -1,5 +1,6 @@
 %bcond_with audacious
 %bcond_with curl
+%bcond_without edit_plugin
 %bcond_with ibm
 %bcond_with imlib
 %bcond_with lua_cairo
@@ -10,6 +11,7 @@
 %bcond_with nvidia
 %bcond_with portmon
 %bcond_with rss
+%bcond_with wayland
 %bcond_with weather
 %bcond_with weather_xoap
 %if 0%{?fedora} >= 36 || 0%{?rhel} >= 8
@@ -22,7 +24,7 @@
 
 Name:           conky
 Version:        1.22.3
-Release:        3%{?dist}
+Release:        2%{?dist}
 Summary:        A system monitor for X
 
 License:        GPLv3+
@@ -44,6 +46,7 @@ BuildRequires:  lua-devel
 %{?with_ncurses:BuildRequires: ncurses-devel}
 %{?with_nvidia:BuildRequires: libXNVCtrl-devel}
 %{?with_rss:BuildRequires: curl-devel libxml2-devel}
+%{?with_wayland:BuildRequires: wayland-devel wayland-protocols-devel}
 %{?with_weather:BuildRequires: curl-devel}
 %{?with_weather_xoap:BuildRequires: libxml2-devel}
 %{?with_wlan:BuildRequires: wireless-tools-devel}
@@ -79,37 +82,100 @@ sed -i 's/${RELEASE_VERSION}-pre-\${GIT_SHORT_SHA}/\${RELEASE_VERSION} - By DrBe
 sed -i 's/\${CMAKE_INSTALL_DATAROOTDIR}\/vim\/syntax/\${CMAKE_INSTALL_DATAROOTDIR}\/.vim\/syntax/g' extras/CMakeLists.txt
 
 %cmake \
-                            -DUSE_CCACHE=ON \
-                            -DBUILD_DOCS=ON \
-                            -DBUILD_BUILTIN_CONFIG=ON \
-                            -DBUILD_SHARED_LIBS:BOOL=ON \
-                            -DBUILD_EXTRAS=OFF \
-    %{?with_audacious:      -DBUILD_AUDACIOUS=ON} \
-    %{?with_curl:           -DBUILD_CURL=ON} \
-    %{!?with_ibm:           -DBUILD_IBM=ON} \
-    %{?with_imlib:          -DBUILD_IMLIB2=ON} \
-    %{?with_lua_cairo:      -DBUILD_LUA_CAIRO=ON} \
-    %{?with_lua_imlib:      -DBUILD_LUA_IMLIB2=ON} \
-    %{!?with_moc:           -DBUILD_MOC=ON} \
-    %{!?with_mpd:           -DBUILD_MPD=ON} \
-    %{!?with_ncurses:       -DBUILD_NCURSES=ON} \
-    %{?with_nvidia:         -DBUILD_NVIDIA=ON} \
-    %{!?with_portmon:       -DBUILD_PORT_MONITORS=ON} \
-    %{?with_rss:            -DBUILD_RSS=ON} \
-    %{?with_weather:        -DBUILD_WEATHER_METAR=ON} \
-    %{?with_weather_xoap:   -DBUILD_WEATHER_XOAP=ON} \
-    %{?with_wlan:           -DBUILD_WLAN=ON} \
-    %{?with_xdbe:           -DBUILD_XDBE=ON} \
-    %{?!with_xinerama:      -DBUILD_XINERAMA=ON} \
-    -DBUILD_I18N=1  -DHAVE_SYS_STATFS_H=1 -DHAVE_SYS_PARAM_H=1 -DHAVE_SYS_INOTIFY_H=1  -DHAVE_DIRENT_H=1 -DHAVE_SOME_SOUNDCARD_H=1 -DHAVE_LINUX_SOUNDCARD_H=1  -DHAVE_STRNDUP=1 -DHAVE_FOPENCOOKIE=1 -DHAVE_FUNOPEN=1 -DHAVE_PIPE2=1 -DHAVE_O_CLOEXEC=1  -DHAVE_CLOCK_GETTIME=1  -DBUILD_X11=1 -DOWN_WINDOW=1 -DBUILD_MOUSE_EVENTS=1  -DBUILD_XDAMAGE=1 -DBUILD_XINERAMA=1 -DBUILD_XFT=1 -DBUILD_XSHAPE=1 -DBUILD_XFIXES=1  -DBUILD_ARGB=1 -DBUILD_XDBE=1 -DBUILD_PORT_MONITORS=1 -DBUILD_AUDACIOUS=1  -DNEW_AUDACIOUS_FOUND=1  -DBUILD_MPD=1 -DBUILD_MYSQL=1 -DBUILD_MOC=1  -DBUILD_NVIDIA=1  -DBUILD_HDDTEMP=1 -DBUILD_LIBXML2=1  -DBUILD_CURL=1 -DBUILD_IMLIB2=1 -DBUILD_MATH=1 -DBUILD_BUILTIN_CONFIG=1  -DBUILD_OLD_CONFIG=1 -DBUILD_NCURSES=1 -DLEAKFREE_NCURSES=0  -DBUILD_APCUPSD=1 -DBUILD_IOSTATS=1 -DBUILD_IPGFREQ=1 -DBUILD_WLAN=1  -DBUILD_ICAL=1 -DBUILD_IRC=1 -DBUILD_PULSEAUDIO=1 -DBUILD_INTEL_BACKLIGHT=1  -DBUILD_IPV6=1 -DBUILD_HTTP=1 -DBUILD_GUI=1 -DBUILD_ICONV=1 -DBUILD_LUA_CAIRO=1  -DBUILD_LUA_IMLIB2=1 -DBUILD_LUA_RSVG=1 -DBUILD_IBM=1 -DBUILD_RSS=1  -DBUILD_CMUS=1 -DBUILD_JOURNAL=1 -DBUILD_HSV_GRADIENT=1 -DHAVE_STATFS64=1 -DBUILD_WAYLAND=1 -DMAX_USER_TEXT_DEFAULT=65536 -DDEFAULT_TEXT_BUFFER_SIZE=655366 -DMAX_NET_INTERFACES=256 \
+    -DBUILD_APCUPSD=ON \
+    -DBUILD_ARGB=ON \
+    -DNEW_AUDACIOUS_FOUND=ON \
+    -DBUILD_AUDACIOUS=ON \
+    -DBUILD_BUILTIN_CONFIG=ON \
+    -DBUILD_CMUS=ON \
+    -DBUILD_CURL=ON \
+    -DBUILD_DOCS=ON \
+    -DBUILD_EXTRAS=ON \
+    -DBUILD_GUI=ON \
+    -DBUILD_HDDTEMP=ON \
+    -DBUILD_HSV_GRADIENT=ON \
+    -DBUILD_HTTP=ON \
+    -DBUILD_I18N=ON \
+    -DBUILD_IBM=ON \
+    -DBUILD_ICAL=ON \
+    -DBUILD_ICONV=ON \
+    -DBUILD_IMLIB2=ON \
+    -DBUILD_INTEL_BACKLIGHT=ON \
+    -DBUILD_IOSTATS=ON \
+    -DBUILD_IPGFREQ=ON \
+    -DBUILD_IPV6=ON \
+    -DBUILD_IRC=ON \
+    -DBUILD_JOURNAL=ON \
+    -DBUILD_LIBXML2=ON \
+    -DBUILD_LUA_CAIRO=ON \
+    -DBUILD_LUA_IMLIB2=ON \
+    -DBUILD_LUA_RSVG=ON \
+    -DBUILD_MATH=ON \
+    -DBUILD_MOC=ON \
+    -DBUILD_MOUSE_EVENTS=ON \
+    -DBUILD_MPD=ON \
+    -DBUILD_MYSQL=ON \
+    -DBUILD_NCURSES=ON \
+    -DBUILD_NVIDIA=ON \
+    -DBUILD_OLD_CONFIG=ON \
+    -DBUILD_PORT_MONITORS=ON \
+    -DBUILD_PULSEAUDIO=ON \
+    -DBUILD_RSS=ON \
+    -DBUILD_SHARED_LIBS:BOOL=ON \
+    -DBUILD_WAYLAND=ON \
+    -DBUILD_WLAN=ON \
+    -DBUILD_X11=ON \
+    -DBUILD_XDAMAGE=ON \
+    -DBUILD_XDBE=ON \
+    -DBUILD_XFIXES=ON \
+    -DBUILD_XFT=ON \
+    -DBUILD_XINERAMA=ON \
+    -DBUILD_XSHAPE=ON \
+    -DHAVE_CLOCK_GETTIME=ON \
+    -DHAVE_DIRENT_H=ON \
+    -DHAVE_FOPENCOOKIE=ON \
+    -DHAVE_FUNOPEN=ON \
+    -DHAVE_LINUX_SOUNDCARD_H=ON \
+    -DHAVE_O_CLOEXEC=ON \
+    -DHAVE_PIPE2=ON \
+    -DHAVE_SOME_SOUNDCARD_H=ON \
+    -DHAVE_STATFS64=ON \
+    -DHAVE_STRNDUP=ON \
+    -DHAVE_SYS_INOTIFY_H=ON \
+    -DHAVE_SYS_PARAM_H=ON \
+    -DHAVE_SYS_STATFS_H=ON \
+    -DLEAKFREE_NCURSES=OFF \
+    -DOWN_WINDOW=ON \
+    -DUSE_CCACHE=ON \
+    %{?with_audacious:       -DBUILD_AUDACIOUS=ON} \
+    %{?with_curl:            -DBUILD_CURL=ON} \
+    %{?with_ibm:             -DBUILD_IBM=ON} \
+    %{?with_imlib:           -DBUILD_IMLIB2=ON} \
+    %{?with_lua_cairo:       -DBUILD_LUA_CAIRO=ON} \
+    %{?with_lua_imlib:       -DBUILD_LUA_IMLIB2=ON} \
+    %{?with_moc:             -DBUILD_MOC=ON} \
+    %{?with_mpd:             -DBUILD_MPD=ON} \
+    %{?with_ncurses:         -DBUILD_NCURSES=ON} \
+    %{?with_nvidia:          -DBUILD_NVIDIA=ON} \
+    %{?with_portmon:         -DBUILD_PORT_MONITORS=ON} \
+    %{?with_rss:             -DBUILD_RSS=ON} \
+    %{?with_wayland:         -DBUILD_WAYLAND=ON} \
+    %{?with_weather_xoap:    -DBUILD_WEATHER_XOAP=ON} \
+    %{?with_weather:         -DBUILD_WEATHER_METAR=ON} \
+    %{?with_wlan:            -DBUILD_WLAN=ON} \
+    %{?with_xdbe:            -DBUILD_XDBE=ON} \
+    %{?with_xinerama:        -DBUILD_XINERAMA=ON} \
+    %{!?without_edit_plugin: -DBUILD_EXTRAS=OFF} \
     -DHTTPPORT=10080 \
-    -DBUILD_IMLIB2=ON} \
-    -DCMAKE_BUILD_TYPE=Release \
+    -DMAX_NET_INTERFACES=256 \
+    -DDEFAULT_TEXT_BUFFER_SIZE=65536 \
+    -DIMLIB_CACHE_SIZE=4194304 \
+    -DMAX_USER_TEXT_DEFAULT=65536 \
     -DDEFAULTNETDEV=wlan0 \
+    -DCMAKE_BUILD_TYPE=Release \
     ;
 
 %cmake_build
-
 
 %install
 %cmake_install
@@ -119,8 +185,9 @@ rm -rf $RPM_BUILD_ROOT%{_docdir}/conky-*
 rm -f $RPM_BUILD_ROOT%{_libdir}/libtcp-portmon.a
 rm -f $RPM_BUILD_ROOT/usr/lib/libconky_core.a
 # Remove files for nano/vim plugins
-#rm -rf $RPM_BUILD_ROOT/nano $RPM_BUILD_ROOT/vim
-
+%if 1%{?without_edit_plugin}
+rm -rf $RPM_BUILD_ROOT/nano $RPM_BUILD_ROOT/vim
+%endif
 %check
 desktop-file-validate $RPM_BUILD_ROOT%{_datadir}/applications/conky.desktop
 
@@ -138,7 +205,10 @@ desktop-file-validate $RPM_BUILD_ROOT%{_datadir}/applications/conky.desktop
 
 
 %changelog
-* Mon Jul 28 2025 Fedora Release <Benson.Dr@GMail.com> - 1.22.3-3
+* Wed Nov 26 2025 Fedora Release <Benson.Dr@GMail.com> - 1.22.3-2
+- Rebuilt for Frdora 43
+
+* Mon Jul 28 2025 Fedora Release <Benson.Dr@GMail.com> - 1.22.3-1
 - Rebuilt for Frdora 41+ 
 
 * Mon Nov 18 2024 Fedora Release Engineering <releng@fedoraproject.org> - 1.21.9-3
