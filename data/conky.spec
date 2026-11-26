@@ -1,6 +1,5 @@
 %bcond_with audacious
 %bcond_with curl
-%bcond_without edit_plugin
 %bcond_with ibm
 %bcond_with imlib
 %bcond_with lua_cairo
@@ -11,7 +10,6 @@
 %bcond_with nvidia
 %bcond_with portmon
 %bcond_with rss
-%bcond_with wayland
 %bcond_with weather
 %bcond_with weather_xoap
 %if 0%{?fedora} >= 36 || 0%{?rhel} >= 8
@@ -24,7 +22,7 @@
 
 Name:           conky
 Version:        1.22.3
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        A system monitor for X
 
 License:        GPLv3+
@@ -46,7 +44,6 @@ BuildRequires:  lua-devel
 %{?with_ncurses:BuildRequires: ncurses-devel}
 %{?with_nvidia:BuildRequires: libXNVCtrl-devel}
 %{?with_rss:BuildRequires: curl-devel libxml2-devel}
-%{?with_wayland:BuildRequires: wayland-devel wayland-protocols-devel}
 %{?with_weather:BuildRequires: curl-devel}
 %{?with_weather_xoap:BuildRequires: libxml2-devel}
 %{?with_wlan:BuildRequires: wireless-tools-devel}
@@ -82,15 +79,31 @@ sed -i 's/${RELEASE_VERSION}-pre-\${GIT_SHORT_SHA}/\${RELEASE_VERSION} - By DrBe
 sed -i 's/\${CMAKE_INSTALL_DATAROOTDIR}\/vim\/syntax/\${CMAKE_INSTALL_DATAROOTDIR}\/.vim\/syntax/g' extras/CMakeLists.txt
 
 %cmake \
-    -DBUILD_APCUPSD=ON \
-    -DBUILD_ARGB=ON \
-    -DNEW_AUDACIOUS_FOUND=ON \
+    %{!?with_ibm:           -DBUILD_IBM=ON} \
+    %{!?with_moc:           -DBUILD_MOC=ON} \
+    %{!?with_mpd:           -DBUILD_MPD=ON} \
+    %{!?with_ncurses:       -DBUILD_NCURSES=ON} \
+    %{!?with_portmon:       -DBUILD_PORT_MONITORS=ON} \
+    %{?!with_xinerama:      -DBUILD_XINERAMA=ON} \
+    %{?with_audacious:      -DBUILD_AUDACIOUS=ON} \
+    %{?with_curl:           -DBUILD_CURL=ON} \
+    %{?with_imlib:          -DBUILD_IMLIB2=ON} \
+    %{?with_lua_cairo:      -DBUILD_LUA_CAIRO=ON} \
+    %{?with_lua_imlib:      -DBUILD_LUA_IMLIB2=ON} \
+    %{?with_nvidia:         -DBUILD_NVIDIA=ON} \
+    %{?with_rss:            -DBUILD_RSS=ON} \
+    %{?with_weather:        -DBUILD_WEATHER_METAR=ON} \
+    %{?with_weather_xoap:   -DBUILD_WEATHER_XOAP=ON} \
+    %{?with_wlan:           -DBUILD_WLAN=ON} \
+    %{?with_xdbe:           -DBUILD_XDBE=ON} \
+    -DBUILD_APCUPSD=1 \
+    -DBUILD_ARGB=1 \
     -DBUILD_AUDACIOUS=ON \
     -DBUILD_BUILTIN_CONFIG=ON \
     -DBUILD_CMUS=ON \
     -DBUILD_CURL=ON \
     -DBUILD_DOCS=ON \
-    -DBUILD_EXTRAS=ON \
+    -DBUILD_EXTRAS=OFF \
     -DBUILD_GUI=ON \
     -DBUILD_HDDTEMP=ON \
     -DBUILD_HSV_GRADIENT=ON \
@@ -131,6 +144,9 @@ sed -i 's/\${CMAKE_INSTALL_DATAROOTDIR}\/vim\/syntax/\${CMAKE_INSTALL_DATAROOTDI
     -DBUILD_XFT=ON \
     -DBUILD_XINERAMA=ON \
     -DBUILD_XSHAPE=ON \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DDEFAULTNETDEV=wlan0 \
+    -DDEFAULT_TEXT_BUFFER_SIZE=655366 \
     -DHAVE_CLOCK_GETTIME=ON \
     -DHAVE_DIRENT_H=ON \
     -DHAVE_FOPENCOOKIE=ON \
@@ -141,41 +157,20 @@ sed -i 's/\${CMAKE_INSTALL_DATAROOTDIR}\/vim\/syntax/\${CMAKE_INSTALL_DATAROOTDI
     -DHAVE_SOME_SOUNDCARD_H=ON \
     -DHAVE_STATFS64=ON \
     -DHAVE_STRNDUP=ON \
-    -DHAVE_SYS_INOTIFY_H=ON \
+    -DHAVE_SYS_INOTIFY_H=ON \ 
     -DHAVE_SYS_PARAM_H=ON \
     -DHAVE_SYS_STATFS_H=ON \
+    -DHTTPPORT=ON \0080 \
     -DLEAKFREE_NCURSES=OFF \
+    -DMAX_NET_INTERFACES=256 \
+    -DMAX_USER_TEXT_DEFAULT=65536 \
+    -DNEW_AUDACIOUS_FOUND=ON \
     -DOWN_WINDOW=ON \
     -DUSE_CCACHE=ON \
-    %{?with_audacious:       -DBUILD_AUDACIOUS=ON} \
-    %{?with_curl:            -DBUILD_CURL=ON} \
-    %{?with_ibm:             -DBUILD_IBM=ON} \
-    %{?with_imlib:           -DBUILD_IMLIB2=ON} \
-    %{?with_lua_cairo:       -DBUILD_LUA_CAIRO=ON} \
-    %{?with_lua_imlib:       -DBUILD_LUA_IMLIB2=ON} \
-    %{?with_moc:             -DBUILD_MOC=ON} \
-    %{?with_mpd:             -DBUILD_MPD=ON} \
-    %{?with_ncurses:         -DBUILD_NCURSES=ON} \
-    %{?with_nvidia:          -DBUILD_NVIDIA=ON} \
-    %{?with_portmon:         -DBUILD_PORT_MONITORS=ON} \
-    %{?with_rss:             -DBUILD_RSS=ON} \
-    %{?with_wayland:         -DBUILD_WAYLAND=ON} \
-    %{?with_weather_xoap:    -DBUILD_WEATHER_XOAP=ON} \
-    %{?with_weather:         -DBUILD_WEATHER_METAR=ON} \
-    %{?with_wlan:            -DBUILD_WLAN=ON} \
-    %{?with_xdbe:            -DBUILD_XDBE=ON} \
-    %{?with_xinerama:        -DBUILD_XINERAMA=ON} \
-    %{!?without_edit_plugin: -DBUILD_EXTRAS=OFF} \
-    -DHTTPPORT=10080 \
-    -DMAX_NET_INTERFACES=256 \
-    -DDEFAULT_TEXT_BUFFER_SIZE=65536 \
-    -DIMLIB_CACHE_SIZE=4194304 \
-    -DMAX_USER_TEXT_DEFAULT=65536 \
-    -DDEFAULTNETDEV=wlan0 \
-    -DCMAKE_BUILD_TYPE=Release \
     ;
 
 %cmake_build
+
 
 %install
 %cmake_install
@@ -185,9 +180,8 @@ rm -rf $RPM_BUILD_ROOT%{_docdir}/conky-*
 rm -f $RPM_BUILD_ROOT%{_libdir}/libtcp-portmon.a
 rm -f $RPM_BUILD_ROOT/usr/lib/libconky_core.a
 # Remove files for nano/vim plugins
-%if 1%{?without_edit_plugin}
-rm -rf $RPM_BUILD_ROOT/nano $RPM_BUILD_ROOT/vim
-%endif
+#rm -rf $RPM_BUILD_ROOT/nano $RPM_BUILD_ROOT/vim
+
 %check
 desktop-file-validate $RPM_BUILD_ROOT%{_datadir}/applications/conky.desktop
 
@@ -205,9 +199,6 @@ desktop-file-validate $RPM_BUILD_ROOT%{_datadir}/applications/conky.desktop
 
 
 %changelog
-* Wed Nov 26 2025 Fedora Release <Benson.Dr@GMail.com> - 1.22.3-2
-- Rebuilt for Frdora 43
-
 * Mon Jul 28 2025 Fedora Release <Benson.Dr@GMail.com> - 1.22.3-1
 - Rebuilt for Frdora 41+ 
 
